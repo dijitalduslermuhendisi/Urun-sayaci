@@ -1,0 +1,56 @@
+#include <Servo.h>
+
+Servo servoMotor;         
+const int trigPin = 9;    
+const int echoPin = 10;   
+const int buzzerPin = 8;  
+const int ledPin = 7;     
+
+void setup() {
+  servoMotor.attach(6);    
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  pinMode(buzzerPin, OUTPUT);
+  pinMode(ledPin, OUTPUT);
+}
+
+void loop() {
+  int distance = getDistance();
+
+  if (distance < 5) {
+    moveServoWithBuzzerAndLED(90); 
+    delay(2000);           
+  } else {
+    moveServoWithBuzzerAndLED(0); 
+    delay(3000);           
+  }
+}
+
+int getDistance() {
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  long duration = pulseIn(echoPin, HIGH);
+  int distance = duration * 0.034 / 2;
+  return distance;
+}
+
+void moveServoWithBuzzerAndLED(int targetAngle) {
+  int currentAngle = servoMotor.read();
+  int increment = (targetAngle > currentAngle) ? 1 : -1;  
+
+  while (currentAngle != targetAngle) {
+    currentAngle += increment;
+    servoMotor.write(currentAngle);
+
+    digitalWrite(buzzerPin, HIGH);
+    digitalWrite(ledPin, HIGH);
+
+    delay(15);  
+  }
+
+  digitalWrite(buzzerPin, LOW);
+  digitalWrite(ledPin, LOW);
+}
