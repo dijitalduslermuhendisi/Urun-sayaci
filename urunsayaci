@@ -1,56 +1,42 @@
-#include <Servo.h>
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
 
-Servo servoMotor;         
-const int trigPin = 9;    
-const int echoPin = 10;   
-const int buzzerPin = 8;  
-const int ledPin = 7;     
+LiquidCrystal_I2C lcd(0x27, 16, 2); // I2C adresini ve ekran boyutunu belirtin
+
+#define trigPin 9
+#define echoPin 10
+
+int counter = 0;
 
 void setup() {
-  servoMotor.attach(6);    
+  Serial.begin(9600);
+  lcd.begin(16, 2);  // LCD ekranını başlat
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
-  pinMode(buzzerPin, OUTPUT);
-  pinMode(ledPin, OUTPUT);
 }
 
 void loop() {
-  int distance = getDistance();
-
-  if (distance < 5) {
-    moveServoWithBuzzerAndLED(90); 
-    delay(2000);           
-  } else {
-    moveServoWithBuzzerAndLED(0); 
-    delay(3000);           
-  }
-}
-
-int getDistance() {
+  long duration, distance;
   digitalWrite(trigPin, LOW);
   delayMicroseconds(2);
   digitalWrite(trigPin, HIGH);
   delayMicroseconds(10);
   digitalWrite(trigPin, LOW);
-  long duration = pulseIn(echoPin, HIGH);
-  int distance = duration * 0.034 / 2;
-  return distance;
-}
+  duration = pulseIn(echoPin, HIGH);
+  distance = (duration / 2) / 29.1;
 
-void moveServoWithBuzzerAndLED(int targetAngle) {
-  int currentAngle = servoMotor.read();
-  int increment = (targetAngle > currentAngle) ? 1 : -1;  
+  if (distance < 10) {
+    counter++;
+    lcd.clear();  // LCD ekranını temizle
+    lcd.setCursor(0, 0); // İlk satıra git
+    lcd.print("Ürün Sayısı: ");
+    lcd.print(counter);
 
-  while (currentAngle != targetAngle) {
-    currentAngle += increment;
-    servoMotor.write(currentAngle);
+    Serial.print("Ürün Sayısı: ");
+    Serial.println(counter);
 
-    digitalWrite(buzzerPin, HIGH);
-    digitalWrite(ledPin, HIGH);
-
-    delay(15);  
+    delay(500); // Birinci delay
   }
 
-  digitalWrite(buzzerPin, LOW);
-  digitalWrite(ledPin, LOW);
+  delay(500); // İkinci delay
 }
